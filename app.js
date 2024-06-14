@@ -1,50 +1,70 @@
 const express = require('express');
 const dbconnect = require('./config');
-const ModelUser = require('./userModel'); // Corregido aquí
+const ModelUser = require('./userModel');
 const app = express();
 
 const router = express.Router();
 
-//  CREATE CRUD //
-// CREATE  - READ - UPDATE - DELETE //
-
 router.post('/', async (req, res) => {
-    const body = req.body
-    const respuesta =  await ModelUser.create(body)
-    res.send(respuesta);
-})
+    try {
+        const body = req.body;
+        const respuesta = await ModelUser.create(body);
+        res.status(201).send(respuesta);
+    } catch (err) {
+        res.status(500).send({ message: "Error creando el usuario", error: err });
+    }
+});
 
 router.get('/', async (req, res) => {
-    const body = req.body
-    const respuesta =  await ModelUser.find(body)
-    res.send(respuesta);
-})
+    try {
+        const respuesta = await ModelUser.find({});
+        res.send(respuesta);
+    } catch (err) {
+        res.status(500).send({ message: "Error obteniendo los usuarios", error: err });
+    }
+});
 
 router.get('/:id', async (req, res) => {
-    const id = req.params.id
-    const respuesta =  await ModelUser.findById(id)
-    res.send(respuesta);
-})
+    try {
+        const id = req.params.id;
+        const respuesta = await ModelUser.findById(id);
+        if (respuesta) {
+            res.send(respuesta);
+        } else {
+            res.status(404).send({ message: "Usuario no encontrado" });
+        }
+    } catch (err) {
+        res.status(500).send({ message: "Error obteniendo el usuario", error: err });
+    }
+});
 
 router.put('/:id', async (req, res) => {
-    const body = req.body
-    const id = req.params.id
-    const respuesta =  await ModelUser.findOneAndUpdate({_id:id}, body)
-    res.send(respuesta);
-})
+    try {
+        const body = req.body;
+        const id = req.params.id;
+        const respuesta = await ModelUser.findOneAndUpdate({ _id: id }, body, { new: true });
+        res.send(respuesta);
+    } catch (err) {
+        res.status(500).send({ message: "Error actualizando el usuario", error: err });
+    }
+});
 
 router.delete('/:id', async (req, res) => {
-    const id = req.params.id
-    const respuesta =  await ModelUser.deleteOne({_id : id})
-    res.send(respuesta);
-})
-
+    try {
+        const id = req.params.id;
+        const respuesta = await ModelUser.deleteOne({ _id: id });
+        res.send(respuesta);
+    } catch (err) {
+        res.status(500).send({ message: "Error eliminando el usuario", error: err });
+    }
+});
 
 app.use(express.json());
-app.use(router);
+app.use('/users', router);
+
 const startServer = async () => {
     try {
-        await dbconnect(); // Esperar a que se complete la conexión a la base de datos
+        await dbconnect();
         app.listen(3001, () => {
             console.log("El servidor está en el puerto 3001");
         });
